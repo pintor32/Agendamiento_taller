@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller Pro - Agendamiento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <nav class="bg-slate-800 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tighter"><i class="fas fa-tools mr-2 text-yellow-400"></i>Taller Pro</h1>
+            <span class="text-sm bg-slate-700 px-3 py-1 rounded-full text-slate-300">v1.0 Demo</span>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8 grid md:grid-cols-2 gap-8">
+        
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 class="text-xl font-semibold mb-6 text-slate-700 border-b pb-2">Agendar Nueva Cita</h2>
+            <form id="appointmentForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Nombre del Cliente</label>
+                    <input type="text" id="clientName" required class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Vehículo (Placa)</label>
+                        <input type="text" id="plate" required placeholder="ABC-123" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Servicio</label>
+                        <select id="service" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Cambio de Aceite">Cambio de Aceite</option>
+                            <option value="Frenos">Revisión de Frenos</option>
+                            <option value="Motor">Ajuste de Motor</option>
+                            <option value="General">Mantenimiento General</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600">Fecha y Hora</label>
+                    <input type="datetime-local" id="date" required class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 shadow-lg">
+                    Confirmar Cita
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 class="text-xl font-semibold mb-6 text-slate-700 border-b pb-2">Citas Programadas</h2>
+            <div id="appointmentsList" class="space-y-4 max-h-[500px] overflow-y-auto">
+                <p class="text-gray-400 text-center italic">No hay citas registradas.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('appointmentForm');
+        const list = document.getElementById('appointmentsList');
+
+        // Cargar citas al iniciar
+        document.addEventListener('DOMContentLoaded', displayAppointments);
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const appointment = {
+                id: Date.now(),
+                name: document.getElementById('clientName').value,
+                plate: document.getElementById('plate').value,
+                service: document.getElementById('service').value,
+                date: document.getElementById('date').value
+            };
+
+            const appointments = JSON.parse(localStorage.getItem('citas') || '[]');
+            appointments.push(appointment);
+            localStorage.setItem('citas', JSON.stringify(appointments));
+
+            form.reset();
+            displayAppointments();
+        });
+
+        function displayAppointments() {
+            const appointments = JSON.parse(localStorage.getItem('citas') || '[]');
+            if (appointments.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 text-center italic">No hay citas registradas.</p>';
+                return;
+            }
+
+            list.innerHTML = appointments.map(app => `
+                <div class="flex justify-between items-center p-4 bg-slate-50 border-l-4 border-blue-500 rounded shadow-sm">
+                    <div>
+                        <p class="font-bold text-slate-800">${app.name} <span class="text-sm font-normal text-gray-500">(${app.plate})</span></p>
+                        <p class="text-sm text-blue-600 font-medium">${app.service}</p>
+                        <p class="text-xs text-gray-400"><i class="far fa-clock mr-1"></i>${new Date(app.date).toLocaleString()}</p>
+                    </div>
+                    <button onclick="deleteApp(${app.id})" class="text-red-400 hover:text-red-600 transition">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteApp(id) {
+            let appointments = JSON.parse(localStorage.getItem('citas') || '[]');
+            appointments = appointments.filter(app => app.id !== id);
+            localStorage.setItem('citas', JSON.stringify(appointments));
+            displayAppointments();
+        }
+    </script>
+</body>
+</html>
